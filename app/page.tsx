@@ -1,8 +1,24 @@
+"use client"
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
+import { Toaster } from "@/components/ui/toaster"
+import api from "@/apiConfig";
 
 export default function Home() {
+  const [csrfToken, setCsrfToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Fetch CSRF token on component mount
+    api.get('/api/v1/csrf')
+      .then(response => {
+        console.log("CSRF Token:", response.data.csrfToken);
+        setCsrfToken(response.data.csrfToken);
+      })
+      .catch(error => console.error("Error fetching CSRF token:", error));
+  }, []);
   return (
     <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
+      <Toaster />
       <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
         <Image
           className="dark:invert"
