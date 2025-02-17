@@ -5,46 +5,60 @@ import PersonalizedMessage from "./PersonalizedMessage";
 import StatusMessage from "./StatusMessage";
 import ReasonSection from "./ReasonSection";
 import Tips from "./Tips";
-import { Diary, parseDiary } from "@/app/types/diary";
-import { userId } from "@/config";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { atom, useAtom, useAtomValue, useSetAtom } from "jotai";
+import { format } from "date-fns";
 import { selectedDateAtom } from "./Calendar";
 import EmptyDiary from "./EmptyDiary";
 import Loader from "../general/Loader";
+import { Diaries, DiaryDto } from "@/app/types/diary";
+import { ErrorResponse } from "@/app/types/diary";
+import { accessTokenAtom, refreshTokenAtom, userIdAtom } from "@/app/login/page";
+import axiosInstance from "@/apiConfig";
 
-const diaryAtom = atom<Diary | undefined>(undefined);
+const diaryAtom = atom<Diaries>({});
 
 const DailyUserContent = () => {
     const date = useAtomValue(selectedDateAtom);
-
-    const [diary, setDiary] = useAtom(diaryAtom);
-
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<String | null>(null);
-
+    const [diaries, setDiaries] = useAtom(diaryAtom);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const accessToken = useAtomValue(accessTokenAtom)
+    const userId = useAtomValue(userIdAtom)
 
     useEffect(() => {
         const req = async () => {
-            setLoading(true);
-            setError(null);
+            setIsLoading(true);
+            setErrorMessage(null);
 
             try {
-                const res = await axios.get(`/api/diary/${userId}/${date}`);
-                if (res.status === 404) {
+                setIsLoading(true)
+                const res = await axiosInstance.get<DiaryDto>(
+                    `/diaries/user/${userId}/${date}`,
+                    {
+                        headers: {
+                            "Authorization": `Bearer ${accessToken}`
+                        },
+                    }
+                );
 
+                setDiaries((prevDiary) => ({ ...prevDiary, [format(res.data.createdAt, "yyyy-MM-dd")]: res.data.content }))
+            } catch (error: any) {
+                if (axios.isAxiosError(error)) {
+                    const axiosError = error as AxiosError<ErrorResponse>;
+                    if (axiosError.response?.data) {
+                        setErrorMessage(axiosError.response.data.message)
+                    }
                 }
-                const diaryData = res.data as string;
-                setDiary(parseDiary(diaryData));
-            } catch (error) {
-                console.error(error);
+            } finally {
+                setIsLoading(false)
             }
         };
 
         req();
     }, [date]);
 
-    if (!diary) {
+    if (isLoading) {
         return (
             <div>
                 <Loader />
@@ -52,13 +66,17 @@ const DailyUserContent = () => {
         );
     }
 
-    return diary!.data.length > 0 ? (
+    const currentDiary = diaries[date];
+
+    return currentDiary ? (
         <div>
-            <AnimatedEmoji />
+            {currentDiary}
+            {/* <AnimatedEmoji />
             <StatusMessage />
             <PersonalizedMessage />
             <ReasonSection />
-            <Tips />
+            <Tips /> */}
+            {/* {currentDiary} */}
         </div>
     ) : (
         <EmptyDiary />

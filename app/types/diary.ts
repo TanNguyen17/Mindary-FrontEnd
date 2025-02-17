@@ -1,5 +1,29 @@
-export interface Diary {
-    data: Datum[];
+import { UUID } from "crypto";
+
+
+export interface Diaries {
+    [date: string]: string | null;
+}
+
+export interface ErrorResponse {
+    status: BigInteger,
+    message: string
+}
+
+export interface DiaryImageDto {
+    id: string;
+    url: string;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface DiaryDto {
+    id: string;
+    content: string;
+    userId: string;
+    images: DiaryImageDto[];
+    createdAt: string;
+    updatedAt: string;
 }
 
 export interface Datum {
@@ -40,47 +64,53 @@ export interface Recommendation {
     benefit: string;
 }
 
-export function parseDiary(data: any): Diary {
-    if (!data || !Array.isArray(data.data)) {
-        throw new Error("Invalid data format for Diary");
-    }
-
-    const parsedData: Datum[] = data.data.map((datum: any, index: number) => {
-        return {
-            recommendations: Array.isArray(datum.recommendations)
-                ? parseRecommendation(datum.recommendations)
-                : [],
-            imageLink: Array.isArray(datum.imageLink) ? datum.imageLink : [],
-            _id: parseString(datum._id, `_id at index ${index}`),
-            senderId: parseString(datum.senderId, `senderId at index ${index}`),
-            content: parseString(datum.content, `content at index ${index}`),
-            moodObjects: Array.isArray(datum.moodObjects)
-                ? datum.moodObjects.map((mo: any, moIndex: number) =>
-                    parseMoodObject(mo, moIndex, index),
-                )
-                : [],
-            correlationObjects: Array.isArray(datum.correlationObjects)
-                ? datum.correlationObjects.map((coArray: any[], coArrayIndex: number) =>
-                    coArray.map((co: any, coIndex: number) =>
-                        parseCorrelationObject(co, coIndex, index, coArrayIndex),
-                    ),
-                )
-                : [],
-            symptomObjects: Array.isArray(datum.symptomObjects)
-                ? datum.symptomObjects.map((soArray: any[], soArrayIndex: number) =>
-                    soArray.map((so: any, soIndex: number) =>
-                        parseSymptomObject(so, soIndex, index, soArrayIndex),
-                    ),
-                )
-                : [],
-            createdAt: parseDate(datum.createdAt, `createdAt at index ${index}`),
-            updatedAt: parseDate(datum.updatedAt, `updatedAt at index ${index}`),
-            __v: parseNumber(datum.__v, `__v at index ${index}`),
-        };
-    });
-
-    return { data: parsedData };
+export interface AuthResponse {
+    accessToken: string,
+    refreshToken: string,
+    userId: UUID
 }
+
+// export function parseDiary(data: any): Diary {
+//     if (!data || !Array.isArray(data.data)) {
+//         throw new Error("Invalid data format for Diary");
+//     }
+
+//     const parsedData: Datum[] = data.data.map((datum: any, index: number) => {
+//         return {
+//             recommendations: Array.isArray(datum.recommendations)
+//                 ? parseRecommendation(datum.recommendations)
+//                 : [],
+//             imageLink: Array.isArray(datum.imageLink) ? datum.imageLink : [],
+//             _id: parseString(datum._id, `_id at index ${index}`),
+//             senderId: parseString(datum.senderId, `senderId at index ${index}`),
+//             content: parseString(datum.content, `content at index ${index}`),
+//             moodObjects: Array.isArray(datum.moodObjects)
+//                 ? datum.moodObjects.map((mo: any, moIndex: number) =>
+//                     parseMoodObject(mo, moIndex, index),
+//                 )
+//                 : [],
+//             correlationObjects: Array.isArray(datum.correlationObjects)
+//                 ? datum.correlationObjects.map((coArray: any[], coArrayIndex: number) =>
+//                     coArray.map((co: any, coIndex: number) =>
+//                         parseCorrelationObject(co, coIndex, index, coArrayIndex),
+//                     ),
+//                 )
+//                 : [],
+//             symptomObjects: Array.isArray(datum.symptomObjects)
+//                 ? datum.symptomObjects.map((soArray: any[], soArrayIndex: number) =>
+//                     soArray.map((so: any, soIndex: number) =>
+//                         parseSymptomObject(so, soIndex, index, soArrayIndex),
+//                     ),
+//                 )
+//                 : [],
+//             createdAt: parseDate(datum.createdAt, `createdAt at index ${index}`),
+//             updatedAt: parseDate(datum.updatedAt, `updatedAt at index ${index}`),
+//             __v: parseNumber(datum.__v, `__v at index ${index}`),
+//         };
+//     });
+
+//     return { data: parsedData };
+// }
 
 /**
  * Parses a CorrelationObject.

@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { format, startOfWeek, addDays } from "date-fns";
 import { atom, useAtom, useAtomValue } from "jotai";
 
-const selectedDateAtom = atom(new Date());
+const selectedDateAtom = atom(format(new Date(), "yyyy-MM-dd"));
 
 const Calendar = () => {
     const today = new Date();
@@ -12,8 +12,9 @@ const Calendar = () => {
 
     const days = Array.from({ length: 7 }).map((_, i) => addDays(startWeek, i));
 
-    const handleDayClick = (date: Date) => {
-        setSelectedDate(format(date, "yyyy-MM-dd"));
+    const handleDayClick = (date: string) => {
+        setSelectedDate(date);
+        setDate(date)
     };
 
     const [date, setDate] = useAtom(selectedDateAtom);
@@ -27,8 +28,8 @@ const Calendar = () => {
                         <div
                             key={index}
                             onClick={() => {
-                                handleDayClick(day);
-                                setDate(day);
+                                handleDayClick(dayKey);
+
                             }}
                             className={`px-2 py-2 text-center rounded-lg cursor-pointer
                                 ${dayKey === selectedDate ? "bg-primary font-bold text-white" : "bg-gray-200 text-gray-800"}

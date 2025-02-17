@@ -1,10 +1,12 @@
 import React from 'react'
-import DailyInputHome from "@/components/diary/DailyInputHome"
+import Calendar from '@/components/diary/Calendar';
+import DailyUserContent from '@/components/diary/DailyUserContent';
 
 const Onboarding = () => {
     return (
         <div>
-            <DailyInputHome />
+            <Calendar />
+            <DailyUserContent />
         </div>
     );
 }

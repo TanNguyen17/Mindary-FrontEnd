@@ -1,6 +1,12 @@
 "use client"
-import React, { useEffect, useState } from 'react'
-import { Button } from '@/components/ui/button'
+import axiosInstance from '@/apiConfig'
+import { zodResolver } from '@hookform/resolvers/zod'
+import React, { useState, useEffect } from 'react'
+import { useForm } from 'react-hook-form'
+import { z } from "zod"
+import { AuthResponse, ErrorResponse } from '../types/diary'
+import { toast } from '@/hooks/use-toast'
+import { AxiosError } from 'axios'
 import {
     Form,
     FormControl,
@@ -12,42 +18,31 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Label } from '@/components/ui/label'
-import axios, { AxiosError } from 'axios'
-import { useToast } from "@/hooks/use-toast"
-import { z } from 'zod'
-import { useForm } from "react-hook-form"
-import { zodResolver } from '@hookform/resolvers/zod'
-import { UUID } from 'crypto'
-import { ErrorResponse } from '../types/diary'
-import { atom, useAtom } from 'jotai'
-import { atomWithStorage } from 'jotai/utils'
-import { AuthResponse } from '../types/diary'
-import axiosInstance from '@/apiConfig'
+import { Button } from '@/components/ui/button'
 
 const formSchema = z.object({
+    username: z.string()
+        .min(5, "Username must be at least 5 characters")
+        .max(50, "Username must be at most 50 characters"),
     email: z.string().email({
-        message: "Email not valid"
+        message: "Invalid email address"
     }),
     password: z.string()
         .min(8, { message: "Password must be at least 8 characters long" })
-    // .max(30, { message: "Password must be at most 30 characters long" })
-    // .regex(/[a-z]/, { message: "Password must contain at least one lowercase letter" })
-    // .regex(/[A-Z]/, { message: "Password must contain at least one uppercase letter" })
-    // .regex(/[0-9]/, { message: "Password must contain at least one number" })
-    // .regex(/[^a-zA-Z0-9]/, { message: "Password must contain at least one special character" })
+        .max(30, { message: "Password must be at most 30 characters long" })
+        .regex(/[a-z]/, { message: "Password must contain at least one lowercase letter" })
+        .regex(/[A-Z]/, { message: "Password must contain at least one uppercase letter" })
+        .regex(/[0-9]/, { message: "Password must contain at least one number" })
+        .regex(/[^a-zA-Z0-9]/, { message: "Password must contain at least one special character" }),
+    confirmPassword: z.string()
+}).refine((data) => data.password === data.confirmPassword, {
+    message: "Password not match",
+    path: ["confirmPassword"]
 })
-
-const accessTokenAtom = atomWithStorage<string | null>("accessToken", typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null);
-const refreshTokenAtom = atomWithStorage<string | null>("refreshToken", typeof window !== 'undefined' ? localStorage.getItem('refreshToken') : null);
-const userIdAtom = atomWithStorage<string | null>("userId", typeof window !== 'undefined' ? localStorage.getItem('userId') : null);
 
 const page = () => {
     const [errorMessage, setErrorMessage] = useState<string | any>()
     const [isLoading, setIsLoading] = useState<boolean>(false)
-    const { toast } = useToast()
-    const [accessToken, setAccessToken] = useAtom(accessTokenAtom)
-    const [userId, setUserId] = useAtom(userIdAtom)
-    const [refreshToken, setRefreshToken] = useAtom(refreshTokenAtom)
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -68,15 +63,19 @@ const page = () => {
         }
     }, [errorMessage])
 
-    const handleLogin = async (values: z.infer<typeof formSchema>) => {
+
+    const handleSignup = async (values: z.infer<typeof formSchema>) => {
+        const username = values.username
         const email = values.email
         const password = values.password
+
         try {
-            const response = await axiosInstance.post<AuthResponse>("/auth/login", {
+            setIsLoading(true)
+            const response = await axiosInstance.post<AuthResponse>("/auth/signup", {
+                username,
                 email,
                 password
             })
-
 
             localStorage.setItem('accessToken', response.data.accessToken)
             localStorage.setItem('refreshToken', response.data.refreshToken)
@@ -84,21 +83,17 @@ const page = () => {
 
             toast({
                 variant: "default",
-                title: "Login Success",
+                title: "Create Account Success",
             })
 
             window.location.href = "/diary"
         } catch (error: any) {
-            console.error('Sign in error:', error);
-
-            if (axios.isAxiosError(error)) {
-                const axiosError = error as AxiosError<ErrorResponse>;
-                if (axiosError.response?.data && axiosError.response.status === 401) { // Check if data exists
-                    console.log(axiosError.response?.data.message)
-                    setErrorMessage("Invalid email or password");
-                } else {
-                    setErrorMessage("An error occurred. Please try again later.");
-                }
+            const axiosError = error as AxiosError<ErrorResponse>;
+            if (axiosError.response?.data && axiosError.response.status === 401) { // Check if data exists
+                console.log(axiosError.response?.data.message)
+                setErrorMessage("Invalid email or password");
+            } else {
+                setErrorMessage("An error occurred. Please try again later.");
             }
         } finally {
             setIsLoading(false)
@@ -114,7 +109,20 @@ const page = () => {
             </header>
             {errorMessage && <p className="text-red-500">{errorMessage}</p>}
             <Form {...form}>
-                <form onSubmit={form.handleSubmit(handleLogin)}>
+                <form onSubmit={form.handleSubmit(handleSignup)}>
+                    <FormField
+                        control={form.control}
+                        name="username"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Username</FormLabel>
+                                <FormControl>
+                                    <Input placeholder='superstar' {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
                     <FormField
                         control={form.control}
                         name="email"
@@ -141,17 +149,29 @@ const page = () => {
                             </FormItem>
                         )}
                     />
+                    <FormField
+                        control={form.control}
+                        name="confirmPassword"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Confirm Password</FormLabel>
+                                <FormControl>
+                                    <Input placeholder='**********' {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
                     <Button type='submit' disabled={isLoading}>
                         {isLoading ? "Signing in..." : "Sign In"}
                     </Button>
                 </form>
             </Form>
             <div>
-                <p>Don't have an account? <a href='/signup' className='text-primary'>Sign Up</a></p>
+                <p>Already have an account? <a href='/login' className='text-primary'>Login</a></p>
             </div>
         </div>
     )
 }
 
 export default page
-export { accessTokenAtom, refreshTokenAtom, userIdAtom }
