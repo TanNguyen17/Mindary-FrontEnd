@@ -23,7 +23,7 @@ import {
     DialogTitle,
     DialogHeader,
 } from "@/components/ui/dialog";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import warmSmile from "@/public/warm-smile.json";
 import loudlyCrying from "@/public/loudly-crying.json";
 import { useRouter } from "next/navigation";
@@ -31,7 +31,7 @@ import { useSetAtom, useAtomValue, useAtom } from "jotai";
 import { selectedDateAtom } from "@/components/diary/Calendar";
 import Loader from "@/components/general/Loader";
 import { UUID } from "crypto";
-import { DiaryDto, DiaryImageDto } from "@/app/types/diary";
+import { DiaryDto, DiaryImageDto, ErrorResponse } from "@/app/types/diary";
 import { accessTokenAtom, userIdAtom } from "@/app/login/page";
 import axiosInstance from "@/apiConfig";
 
@@ -92,9 +92,13 @@ const Input = () => {
                 // } else {
                 //     setErrorDialog(true);
                 // }
-
-            } catch (error) {
-                console.log(error);
+            } catch (error: any) {
+                if (axios.isAxiosError(error)) {
+                    const axiosError = error as AxiosError<ErrorResponse>
+                    if (axiosError.response?.data) {
+                        console.log(axiosError.response.data.message)
+                    }
+                }
                 setOpen(false);
                 setErrorDialog(true);
             } finally {

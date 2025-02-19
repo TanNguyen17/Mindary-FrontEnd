@@ -93,7 +93,7 @@ const page = () => {
 
             if (axios.isAxiosError(error)) {
                 const axiosError = error as AxiosError<ErrorResponse>;
-                if (axiosError.response?.data && axiosError.response.status === 401) { // Check if data exists
+                if (axiosError.response?.data && axiosError.response.status === 401) {
                     console.log(axiosError.response?.data.message)
                     setErrorMessage("Invalid email or password");
                 } else {
@@ -112,7 +112,6 @@ const page = () => {
                 <h1>Welcome Back</h1>
                 <h4>Input your credentials to sign in</h4>
             </header>
-            {errorMessage && <p className="text-red-500">{errorMessage}</p>}
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(handleLogin)}>
                     <FormField
