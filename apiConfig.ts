@@ -12,8 +12,11 @@ declare module 'axios' {
 }
 
 const axiosInstance = axios.create({
-    baseURL: "http://localhost:8080/api/v1"
-})
+    baseURL: "http://localhost:8080/api/v1",
+    headers: {
+        'Content-Type': 'application/json',
+    },
+});
 
 const refreshAccessToken = async (refreshToken: string) => {
     if (!refreshToken) {
@@ -48,6 +51,14 @@ const refreshAccessToken = async (refreshToken: string) => {
         return null;
     }
 }
+
+axiosInstance.interceptors.request.use((config) => {
+    const token = localStorage.getItem('accessToken');
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+});
 
 axiosInstance.interceptors.response.use(
     (response) => response,
