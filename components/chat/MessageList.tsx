@@ -1,5 +1,6 @@
 import { ChatMessage } from '@/app/types/chat';
 import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 interface MessageListProps {
     messages: ChatMessage[];
@@ -7,20 +8,32 @@ interface MessageListProps {
 
 export function MessageList({ messages }: MessageListProps) {
     return (
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <div className="chat-messages">
             {messages.map((message) => (
                 <div
                     key={message.id}
-                    className={`flex ${message.type === 'USER' ? 'justify-end' : 'justify-start'}`}
+                    className={cn(
+                        "flex gap-3",
+                        message.type === 'USER' ? "justify-end" : "justify-start"
+                    )}
                 >
                     <div
-                        className={`max-w-[70%] rounded-lg p-3 ${message.type === 'USER'
-                                ? 'bg-blue-500 text-white'
-                                : 'bg-gray-100 text-gray-900'
-                            }`}
+                        className={cn(
+                            "max-w-[70%] rounded-lg p-4",
+                            message.type === 'USER'
+                                ? "bg-[#7EC8D3] text-white"
+                                : "bg-card border shadow-sm"
+                        )}
                     >
-                        <div className="text-sm">{message.message}</div>
-                        <div className="text-xs mt-1 opacity-70">
+                        <div className="text-sm whitespace-pre-wrap break-words">
+                            {message.message}
+                        </div>
+                        <div className={cn(
+                            "text-xs mt-2",
+                            message.type === 'USER'
+                                ? "text-white/70"
+                                : "text-muted-foreground"
+                        )}>
                             {format(new Date(message.timestamp), 'h:mm a')}
                         </div>
                     </div>

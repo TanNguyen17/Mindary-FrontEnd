@@ -31,4 +31,9 @@ export interface ChatMessage {
 export interface ApiErrorResponse {
     status: number;
     message: string;
-} 
+}
+
+export interface CreateConversationResponse {
+    messages: ChatMessage[];
+    conversation: Conversation;
+}
