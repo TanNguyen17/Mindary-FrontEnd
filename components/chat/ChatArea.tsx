@@ -99,6 +99,17 @@ export function ChatArea({ conversation, isMobile }: ChatAreaProps) {
 
             setMessages(prev => [...prev, userMessage]);
 
+            // Update conversation list immediately with user's message
+            setConversations(prev => prev.map(conv =>
+                conv.id === conversation.id
+                    ? {
+                        ...conv,
+                        lastMessage: content,
+                        lastMessageAt: new Date().toISOString()
+                    }
+                    : conv
+            ));
+
             // Scroll to bottom after adding user message
             if (messageContainerRef.current) {
                 messageContainerRef.current.scrollTop = messageContainerRef.current.scrollHeight;
@@ -120,6 +131,18 @@ export function ChatArea({ conversation, isMobile }: ChatAreaProps) {
                     timestamp: response.timestamp
                 }
             ]);
+
+            // Update conversation list with AI's response
+            setConversations(prev => prev.map(conv =>
+                conv.id === conversation.id
+                    ? {
+                        ...conv,
+                        lastMessage: response.response,
+                        lastMessageAt: response.timestamp
+                    }
+                    : conv
+            ));
+
         } catch (error) {
             console.error('Error sending message:', error);
             toast({

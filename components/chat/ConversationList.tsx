@@ -1,7 +1,7 @@
 import { Conversation } from '@/app/types/chat';
 import { format } from 'date-fns';
 import { Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { ConfirmationDialog } from '../ui/confirmation-dialog';
 import { cn } from '@/lib/utils';
 import { useMediaQuery } from '@/hooks/use-media-query';
@@ -28,6 +28,13 @@ export function ConversationList({
     });
     const isMobile = useMediaQuery("(max-width: 768px)");
 
+    // Sort conversations by lastMessageAt
+    const sortedConversations = useMemo(() => {
+        return [...conversations].sort((a, b) =>
+            new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime()
+        );
+    }, [conversations]);
+
     const handleDelete = async () => {
         if (deleteDialog.conversation) {
             await onDelete(deleteDialog.conversation);
@@ -38,7 +45,7 @@ export function ConversationList({
     return (
         <>
             <div className="space-y-1">
-                {conversations.map((conversation) => (
+                {sortedConversations.map((conversation) => (
                     <div
                         key={conversation.id}
                         className={cn(
