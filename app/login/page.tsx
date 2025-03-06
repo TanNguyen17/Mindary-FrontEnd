@@ -156,7 +156,7 @@
 // export default page
 // export { accessTokenAtom, refreshTokenAtom, userIdAtom }
 
-import { LoginForm } from "@/components/ui/login-form"
+import { LoginForm } from "@/components/auth/login-form"
 
 export default function LoginPage() {
   return (
