@@ -2,7 +2,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useAtomValue } from "jotai";
-import { selectedDateAtom } from "./Calendar";
 import { diaryAtom } from "./DailyUserContent";
 
 enum Mood {

@@ -2,22 +2,20 @@
 import React, { useState } from "react";
 import { format, startOfWeek, addDays } from "date-fns";
 import { atom, useAtom, useAtomValue } from "jotai";
-
-const selectedDateAtom = atom(format(new Date(), "yyyy-MM-dd"));
+import useUserStore from "@/hooks/useUserStore";
 
 const Calendar = () => {
     const today = new Date();
     const startWeek = startOfWeek(today, { weekStartsOn: 1 });
-    const [selectedDate, setSelectedDate] = useState(format(today, "yyyy-MM-dd"));
+    const selectedDate = useUserStore((state) => state.selectedDate);
+    const setSelectedDate = useUserStore((state) => state.setSelectedDate)
 
     const days = Array.from({ length: 7 }).map((_, i) => addDays(startWeek, i));
 
     const handleDayClick = (date: string) => {
         setSelectedDate(date);
-        setDate(date)
     };
 
-    const [date, setDate] = useAtom(selectedDateAtom);
 
     return (
         <div className="flex flex-col items-center my-4 w-full pb-3">
@@ -47,4 +45,3 @@ const Calendar = () => {
 };
 
 export default Calendar;
-export { selectedDateAtom };

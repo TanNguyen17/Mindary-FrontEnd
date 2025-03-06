@@ -19,10 +19,9 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from '@hookform/resolvers/zod'
 import { UUID } from 'crypto'
 import { ErrorResponse } from '../types/diary'
-import { atom, useAtom } from 'jotai'
-import { atomWithStorage } from 'jotai/utils'
 import { AuthResponse } from '../types/diary'
 import axiosInstance from '@/apiConfig'
+import useAuthStore from '@/hooks/useAuthStore'
 
 const formSchema = z.object({
     email: z.string().email({
@@ -37,17 +36,11 @@ const formSchema = z.object({
     // .regex(/[^a-zA-Z0-9]/, { message: "Password must contain at least one special character" })
 })
 
-const accessTokenAtom = atomWithStorage<string | null>("accessToken", typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null);
-const refreshTokenAtom = atomWithStorage<string | null>("refreshToken", typeof window !== 'undefined' ? localStorage.getItem('refreshToken') : null);
-const userIdAtom = atomWithStorage<string | null>("userId", typeof window !== 'undefined' ? localStorage.getItem('userId') : null);
-
 const page = () => {
+    const setAuth = useAuthStore((state) => state.setAuthTokens)
     const [errorMessage, setErrorMessage] = useState<string | any>()
     const [isLoading, setIsLoading] = useState<boolean>(false)
     const { toast } = useToast()
-    const [accessToken, setAccessToken] = useAtom(accessTokenAtom)
-    const [userId, setUserId] = useAtom(userIdAtom)
-    const [refreshToken, setRefreshToken] = useAtom(refreshTokenAtom)
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -77,10 +70,7 @@ const page = () => {
                 password
             })
 
-
-            localStorage.setItem('accessToken', response.data.accessToken)
-            localStorage.setItem('refreshToken', response.data.refreshToken)
-            localStorage.setItem('userId', response.data.userId)
+            setAuth(response.data.userId, response.data.accessToken, response.data.refreshToken);
 
             toast({
                 variant: "default",
@@ -93,7 +83,7 @@ const page = () => {
 
             if (axios.isAxiosError(error)) {
                 const axiosError = error as AxiosError<ErrorResponse>;
-                if (axiosError.response?.data && axiosError.response.status === 401) { // Check if data exists
+                if (axiosError.response?.data && axiosError.response.status === 401) {
                     console.log(axiosError.response?.data.message)
                     setErrorMessage("Invalid email or password");
                 } else {
@@ -112,7 +102,6 @@ const page = () => {
                 <h1>Welcome Back</h1>
                 <h4>Input your credentials to sign in</h4>
             </header>
-            {errorMessage && <p className="text-red-500">{errorMessage}</p>}
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(handleLogin)}>
                     <FormField
@@ -154,4 +143,3 @@ const page = () => {
 }
 
 export default page
-export { accessTokenAtom, refreshTokenAtom, userIdAtom }
