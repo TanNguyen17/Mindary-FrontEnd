@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import OnboardingStep from "./OnboardingStep";
 import { cn } from "@/lib/utils";
-import WheelPicker from "../WheelPicker";
+import WheelPicker from "../general/WheelPicker";
 import { Button } from "../ui/button";
 
 interface SelectPreferTimeProps {

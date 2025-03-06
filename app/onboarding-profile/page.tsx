@@ -7,7 +7,7 @@ import OnboardingProgress from '@/components/onboarding-profile/OnboardingProgre
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
-import WheelPicker from '@/components/WheelPicker'
+import WheelPicker from '@/components/general/WheelPicker'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Check } from 'lucide-react'
 import SelectPreferTime from '@/components/onboarding-profile/SelectPreferTime'

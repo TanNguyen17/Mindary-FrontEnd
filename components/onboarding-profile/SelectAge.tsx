@@ -1,7 +1,7 @@
 "use client"
 import React from 'react'
 import OnboardingStep from './OnboardingStep';
-import WheelPicker from '../WheelPicker';
+import WheelPicker from '../general/WheelPicker';
 
 interface SelectAge {
     title: string,
